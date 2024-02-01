@@ -1,6 +1,7 @@
 using CMS.Entities;
 using CMS.Interfaces;
 using CMS.Persistence;
+using CMS.Persistence.Seed;
 using CMS.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -16,10 +17,14 @@ var configuration = builder.Configuration;
 // 1. DbContext
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("db")));
 
-// 2. Identity
+// Add support for roles
 builder.Services.AddIdentity<User, IdentityRole>()
+    .AddRoles<IdentityRole>()
+    .AddRoleManager<RoleManager<IdentityRole>>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddHttpClient();
 
 
 // 3. Add Authentication
@@ -29,6 +34,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
+
 
 // 4. Add Jwt Bearer
       .AddJwtBearer(options =>
@@ -44,8 +50,19 @@ builder.Services.AddAuthentication(options =>
               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
           };
       });
-// Add services to the container.
 
+
+// Add authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ElevatedRights", policy =>
+        policy.RequireRole(Role.Admin));
+    options.AddPolicy("StandardRights", policy =>
+        policy.RequireRole(Role.Admin, Role.User));
+});
+
+
+// Add services to the container.
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddControllers();
@@ -115,5 +132,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Add seed
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    await SeedManager.Seed(services);
+}
 
 app.Run();

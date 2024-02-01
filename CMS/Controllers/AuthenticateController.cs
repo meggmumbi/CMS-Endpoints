@@ -1,4 +1,5 @@
 ﻿using CMS.Dtos;
+using CMS.Extensions;
 using CMS.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,19 @@ public class AuthenticateController : Controller
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResultDto<string>))]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
     {
-        var response = await _authenticationService.Login(request);
+        var result = await _authenticationService.Login(request);
 
-        return Ok(response);
+        var resultDto = result.ToResultDto();
+
+        if(!resultDto.IsSuccess)
+        {
+            return BadRequest(resultDto);
+        }
+
+        return Ok(resultDto);
     }
 
     [AllowAnonymous]
@@ -33,10 +42,36 @@ public class AuthenticateController : Controller
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResultDto<string>))]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
     {
-        var response = await _authenticationService.Register(request);
+        var result = await _authenticationService.Register(request);
 
-        return Ok(response);
+        var resultDto = result.ToResultDto();
+
+        if (!resultDto.IsSuccess)
+        {
+            return BadRequest(resultDto);
+        }
+        return Ok(resultDto);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("social-login")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ResultDto<string>))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ResultDto<string>))]
+    public async Task<IActionResult> SocialLogin([FromBody] SocialLoginRequest request)
+    {
+        var result = await _authenticationService.SocialLogin(request);
+
+        var resultDto = result.ToResultDto();
+
+        if (!resultDto.IsSuccess)
+        {
+            return BadRequest(resultDto);
+        }
+        return Ok(resultDto);
     }
 }

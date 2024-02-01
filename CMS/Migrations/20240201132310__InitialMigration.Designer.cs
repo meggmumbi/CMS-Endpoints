@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CMS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240129145857_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240201132310__InitialMigration")]
+    partial class _InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -65,6 +65,10 @@ namespace CMS.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");

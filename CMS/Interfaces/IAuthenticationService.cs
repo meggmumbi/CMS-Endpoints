@@ -1,10 +1,12 @@
 ﻿using CMS.Dtos;
+using FluentResults;
 
 namespace CMS.Interfaces
 {
     public interface IAuthenticationService
     {
-        Task<string> Register(RegisterRequestDto request);
-        Task<string> Login(LoginRequestDto requst);
+        Task<Result<string>> Register(RegisterRequestDto request);
+        Task<Result<string>> Login(LoginRequestDto requst);
+        Task<Result<string>> SocialLogin(SocialLoginRequest request);
     }
 }

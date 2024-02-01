@@ -4,11 +4,14 @@ namespace CMS.Dtos
 {
     public class RegisterRequestDto
     {
-        [Required]
+        [MinLength(Consts.UsernameMinLength, ErrorMessage = Consts.UsernameLengthValidationError)]
         public string? UserName { get; set; }
-        [Required]
-        public string? Password { get; set; }
-        [Required]
+
+        [EmailAddress(ErrorMessage = Consts.EmailValidationError)]
         public string? Email { get; set; }
+
+        [RegularExpression(Consts.PasswordRegex, ErrorMessage = Consts.PasswordValidationError)]
+        public string? Password { get; set; }
     }
 }
+
