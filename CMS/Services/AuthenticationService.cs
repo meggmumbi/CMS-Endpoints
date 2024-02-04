@@ -55,35 +55,23 @@ namespace CMS.Services
 
         public async Task<Result<string>> Login(LoginRequestDto request)
         {
-            var user = await _userManager.FindByNameAsync(request.Username);
 
-            if (user is null)
-            {
-                user = await _userManager.FindByEmailAsync(request.Username);
-            }
+            var user = await _userManager.FindByNameAsync(request.Username) ?? await _userManager.FindByEmailAsync(request.Username);
 
             if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
-                return Result.Fail(new Error($"Unable to authenticate user {request.Username}"));
+                return Result.Fail($"Unable to authenticate user {request.Username}");
             }
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            var authClaims = new List<Claim>
-        {
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
 
             if (user.Provider != Consts.LoginProviders.Password)
             {
                 return Result.Fail($"User was registered via {user.Provider} and cannot be logged via {Consts.LoginProviders.Password}.");
             }
 
-            var token = GetToken(authClaims);
+            var token = GetToken(await GetClaims(user));
 
             return Result.Ok(new JwtSecurityTokenHandler().WriteToken(token));
+        
         }
 
         public async Task<Result<string>> SocialLogin(SocialLoginRequest request)
