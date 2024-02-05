@@ -28,6 +28,7 @@ namespace CMS.Services
         {
             var userByEmail = await _userManager.FindByEmailAsync(request.Email);
             var userByUsername = await _userManager.FindByNameAsync(request.UserName);
+
             if (userByEmail is not null || userByUsername is not null)
             {
                 return Result.Fail(new Error($"User with email {request.Email} or username {request.UserName} already exists."));
@@ -47,7 +48,7 @@ namespace CMS.Services
 
             if (!result.Succeeded)
             {
-                return Result.Fail(new Error($"Unable to register user {request.UserName} errors: {GetErrorsText(result.Errors)}"));
+                return Result.Fail($"Unable to register user {request.UserName}, errors: {GetErrorsText(result.Errors)}");
             }
 
             return await Login(new LoginRequestDto { Username = request.Email, Password = request.Password });
@@ -198,7 +199,7 @@ namespace CMS.Services
         {
             var authClaims = new List<Claim>
         {
-            new(ClaimTypes.Name, user.Email!),
+            new(ClaimTypes.Name, user.UserName!),
             new(ClaimTypes.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
